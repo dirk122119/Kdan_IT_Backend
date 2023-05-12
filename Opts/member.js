@@ -1,7 +1,8 @@
 const {
   getAllMembers,
   getMemberByNumber,
-  postTodayCheck,
+  postTodayClock,
+  putReClock
 } = require("../controllers/members");
 
 const getMembersOpts = {
@@ -68,16 +69,16 @@ const getMemberOpts = {
   handler: getMemberByNumber,
 };
 
-const postTodayCheckOpts = {
+const postTodayClockOpts = {
   schema: {
 
     body: {
       type: "object",
       properties: {
         // 定义请求体的属性和类型
-        employeeNumber: { type: "number",default:1001 },
-        checkCatagory: { type: "string",enum: ['clockIn', 'clockOut'],default:"clockIn",description: 'only clockIn and clockOut' },
-        time: { type: "string",default:"2023-05-12" },
+        employeeNumber: { type: "number",default:1110001 },
+        checkCatagory: { type: "string",enum: ['clockIn', 'clockOut'],default:"clockIn",description: 'only clockIn and clockOut',default:"clockIn" },
+        time: { type: "string",default:"2023-05-12 09:00" },
         // ...
       },
       required: ['employeeNumber', 'checkCatagory', 'time'],
@@ -92,11 +93,44 @@ const postTodayCheckOpts = {
           // ...
         },
         default: {
-          message: "新增打卡紀錄成功",
+          message: "add 1110001 clockIn at 2023-05-12 09:00",
         },
       },
     },
   },
-  handler: postTodayCheck,
+  handler: postTodayClock,
 };
-module.exports = { getMembersOpts, getMemberOpts, postTodayCheckOpts };
+
+const putReClockOpts = {
+  schema: {
+
+    body: {
+      type: "object",
+      properties: {
+        // 定义请求体的属性和类型
+        employeeNumber: { type: "number",default:1110001 },
+        checkCatagory: { type: "string",enum: ['clockIn', 'clockOut'],default:"clockIn",description: 'only clockIn and clockOut',default:"clockIn" },
+        time: { type: "string",default:"2023-04-12 09:00" },
+        // ...
+      },
+      required: ['employeeNumber', 'checkCatagory', 'time'],
+    },
+    response: {
+      200: {
+        description: "補打卡記錄",
+        type: "object",
+        properties: {
+          // 定义响应体的属性和类型
+          message: { type: "string" },
+          // ...
+        },
+        default: {
+          message: "set 1110001 clockIn at 2023-04-12 09:00",
+        },
+      },
+    },
+  },
+  handler: putReClock,
+};
+
+module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts };

@@ -17,7 +17,7 @@ const getMemberByNumber = (req, reply) => {
   reply.send(member);
 };
 
-const postTodayCheck = async (req, reply) => {
+const postTodayClock = async (req, reply) => {
   const reqBody = req.body;
 
   try {
@@ -72,12 +72,13 @@ const postTodayCheck = async (req, reply) => {
             "UPDATE members SET clockOut = ? where DATE(clockIn) = CURDATE() and employeeNumber = ?;";
           values = [reqBody.time, reqBody.employeeNumber];
           const [result] = await connection.query(query, values);
-          reply.status(201).send({
+          reply.status(200).send({
             message: `set ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
           });
-        }
-        else{
-          reply.code(400).send({ message: 'wrong clockOut time, clockIn must be early than clockOut' });
+        } else {
+          reply.code(400).send({
+            message: "wrong clockOut time, clockIn must be early than clockOut",
+          });
         }
       }
     }
@@ -88,4 +89,76 @@ const postTodayCheck = async (req, reply) => {
   }
 };
 
-module.exports = { getAllMembers, getMemberByNumber, postTodayCheck };
+const putReClock = async (req, reply) => {
+  const reqBody = req.body;
+  const date = moment(reqBody.time).format('YYYY-MM-DD');
+  try {
+    const connection = await pool.getConnection();
+    let query =
+      "select * From members where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?)";
+    let values = [reqBody.employeeNumber, date, date];
+    const [rows, fields] = await connection.query(query, values);
+    if (rows.length == 0) {
+      query =
+        reqBody.checkCatagory === "clockIn"
+          ? "INSERT INTO members (employeeNumber, clockIn) VALUES (?,?);"
+          : "INSERT INTO members (employeeNumber, clockOut) VALUES (?,?);";
+      values = [reqBody.employeeNumber, reqBody.time];
+      const [result] = await connection.query(query, values);
+      reply.status(201).send({
+        message: `add ${reqBody.employeeNumber} ${reqBody.checkCatagory} data at ${reqBody.time} `,
+      });
+    } else if (rows[0][`${reqBody.checkCatagory}`] != null) {
+      reply.status(409).send({
+        messgae: `employeeNumber:${reqBody.employeeNumber},date:${date} ${reqBody.checkCatagory} data is exist`,
+      });
+    } else if (rows[0][`${reqBody.checkCatagory}`] === null) {
+      let flag = true;
+      if (reqBody.checkCatagory === "clockIn") {
+        const stringformat = "YYYY-MM-DD HH:mm";
+        const clockInTime = moment(reqBody.time, stringformat)
+        const clockOutTime = rows[0]["clockOut"];
+        const diffTime = clockOutTime.diff(clockInTime, "minutes");
+        if (diffTime < 0) {
+          reply.code(400).send({
+            message: "wrong clockOut time, clockIn must be early than clockOut",
+          });
+          flag = false;
+        }
+      } else if (reqBody.checkCatagory === "clockOut") {
+        const stringformat = "YYYY-MM-DD HH:mm";
+        const clockOutTime = moment(reqBody.time, stringformat);
+        const clockInTime = rows[0]["clockIn"];
+        const diffTime = clockOutTime-clockInTime
+
+        if (diffTime < 0) {
+          reply.code(400).send({
+            message: "wrong clockOut time, clockIn must be early than clockOut",
+          });
+          flag = false;
+        }
+      }
+      if (flag) {
+        query =
+          reqBody.checkCatagory === "clockIn"
+            ? "UPDATE members set clockIn = ? where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?);"
+            : "UPDATE members set clockOut = ? where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?);";
+        values = [reqBody.time, reqBody.employeeNumber, date, date];
+        const [result] = await connection.query(query, values);
+        reply.status(200).send({
+          message: `employeeNumber:${reqBody.employeeNumber},  re${reqBody.checkCatagory} at ${reqBody.time} `,
+        });
+      }
+    }
+    connection.release();
+  } catch (error) {
+    console.error("Error executing MySQL query:", error);
+    reply.status(500).send("Internal Server Error");
+  }
+};
+module.exports = {
+  getAllMembers,
+  getMemberByNumber,
+  postTodayClock,
+  putReClock,
+};
