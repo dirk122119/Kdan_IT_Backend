@@ -2,7 +2,7 @@ const members = require("../member_data");
 const momentTz = require("moment-timezone");
 const moment = require("moment");
 const { pool } = require("../lib/SQLfunction");
-
+const { getBreakTime, getTotalWorkTime } = require("../lib/getDiffTime");
 const getAllMembers = (req, reply) => {
   reply.send(members);
 };
@@ -28,7 +28,7 @@ const postTodayClock = async (req, reply) => {
 
     if (reqBody.checkCatagory === "clockIn") {
       let query =
-        "select * From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
+        "select employeeNumber, CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
       let values = [reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       if (rows.length != 0 && rows[0].clockIn) {
@@ -45,7 +45,7 @@ const postTodayClock = async (req, reply) => {
       }
     } else if (reqBody.checkCatagory === "clockOut") {
       let query =
-        "select * From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
+        "select employeeNumber,CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
       let values = [reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       // 早上未打卡新增下班打卡資料
@@ -91,11 +91,13 @@ const postTodayClock = async (req, reply) => {
 
 const putReClock = async (req, reply) => {
   const reqBody = req.body;
-  const date = moment(reqBody.time).format('YYYY-MM-DD');
+  const dateTime = moment(reqBody.time, "YYYY-MM-DD HH:mm");
+  const date = dateTime.format("YYYY-MM-DD");
+
   try {
     const connection = await pool.getConnection();
     let query =
-      "select * From members where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?)";
+      "select employeeNumber,CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?)";
     let values = [reqBody.employeeNumber, date, date];
     const [rows, fields] = await connection.query(query, values);
     if (rows.length == 0) {
@@ -114,9 +116,10 @@ const putReClock = async (req, reply) => {
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] === null) {
       let flag = true;
+      //判斷clockOut時間有沒有比clockIn時間晚
       if (reqBody.checkCatagory === "clockIn") {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockInTime = moment(reqBody.time, stringformat)
+        const clockInTime = moment(reqBody.time, stringformat);
         const clockOutTime = rows[0]["clockOut"];
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
         if (diffTime < 0) {
@@ -125,11 +128,12 @@ const putReClock = async (req, reply) => {
           });
           flag = false;
         }
+        // 判斷clockOut時間有沒有比clockIn時間晚
       } else if (reqBody.checkCatagory === "clockOut") {
         const stringformat = "YYYY-MM-DD HH:mm";
         const clockOutTime = moment(reqBody.time, stringformat);
         const clockInTime = rows[0]["clockIn"];
-        const diffTime = clockOutTime-clockInTime
+        const diffTime = clockOutTime.diff(clockInTime, "minutes");
 
         if (diffTime < 0) {
           reply.code(400).send({
@@ -156,9 +160,186 @@ const putReClock = async (req, reply) => {
     reply.status(500).send("Internal Server Error");
   }
 };
+
+const getTodayAllInfo = async (req, reply) => {
+  const today = momentTz();
+  const timezone = "Asia/Taipei";
+  const todayInTaiwan = today.tz(timezone);
+  const dateToday = todayInTaiwan.format("YYYY-MM-DD");
+  try {
+    const connection = await pool.getConnection();
+    let query =
+      "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ? or DATE(clockOut) = ?";
+    let values = [dateToday, dateToday];
+    const [rows, fields] = await connection.query(query, values);
+    console.log(rows);
+    const return_array = rows.map((row) => {
+      if (row["clockIn"] != null && row["clockOut"] != null) {
+        const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
+        const clockOutTime = moment(row["clockOut"], "HH:mm").utcOffset(8);
+        const breakStartTime = moment("12:00", "HH:mm").utcOffset(8);
+        const breakEndTime = moment("13:30", "HH:mm").utcOffset(8);
+        const breakTime = getBreakTime(
+          clockInTime,
+          clockOutTime,
+          breakStartTime,
+          breakEndTime
+        );
+        const totalWorkTime = getTotalWorkTime(
+          clockInTime,
+          clockOutTime,
+          breakStartTime,
+          breakEndTime
+        );
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: `${moment(row["clockIn"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          breakTime: Number(breakTime.toFixed(2)),
+          totalWorkTime: Number(totalWorkTime.toFixed(2)),
+        };
+      } else if (row["clockIn"] === null) {
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: null,
+          clockOut: `${moment(row["clockOut"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          breakTime: null,
+          totalWorkTime: null,
+        };
+      } else if (row["clockOut"] === null) {
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: `${moment(row["clockIn"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: null,
+          breakTime: null,
+          totalWorkTime: null,
+        };
+      }
+    });
+    connection.release();
+    reply.status(200).send(return_array);
+  } catch (error) {
+    console.error("Error executing MySQL query:", error);
+    reply.status(500).send("Internal Server Error");
+  }
+};
+
+const getPeriodAllInfo = async (req, reply) => {
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+
+  try {
+    const connection = await pool.getConnection();
+    let query =
+      "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) >= ? and DATE(clockIn) <= ?) or (DATE(clockOut) >= ? and DATE(clockOut) <= ?)";
+    let values = [startDate, endDate, startDate, endDate];
+    const [rows, fields] = await connection.query(query, values);
+    const return_array = rows.map((row) => {
+      if (row["clockIn"] != null && row["clockOut"] != null) {
+        const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
+        const clockOutTime = moment(row["clockOut"], "HH:mm").utcOffset(8);
+        const breakStartTime = moment("12:00", "HH:mm").utcOffset(8);
+        const breakEndTime = moment("13:30", "HH:mm").utcOffset(8);
+        const breakTime = getBreakTime(
+          clockInTime,
+          clockOutTime,
+          breakStartTime,
+          breakEndTime
+        );
+
+        const totalWorkTime = getTotalWorkTime(
+          clockInTime,
+          clockOutTime,
+          breakStartTime,
+          breakEndTime
+        );
+
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: `${moment(row["clockIn"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          breakTime: Number(breakTime.toFixed(2)),
+          totalWorkTime: Number(totalWorkTime.toFixed(2)),
+        };
+      } else if (row["clockIn"] === null) {
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: null,
+          clockOut: `${moment(row["clockOut"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          breakTime: null,
+          totalWorkTime: null,
+        };
+      } else if (row["clockOut"] === null) {
+        return {
+          employeeNumber: `${row["employeeNumber"]}`,
+          clockIn: `${moment(row["clockIn"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: null,
+          breakTime: null,
+          totalWorkTime: null,
+        };
+      }
+    });
+    connection.release();
+    reply.status(200).send(return_array);
+  } catch (error) {
+    console.error("Error executing MySQL query:", error);
+    reply.status(500).send("Internal Server Error");
+  }
+};
+
+const getPeriodNonClockOutInfo = async (req, reply) => {
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+  try {
+    const connection = await pool.getConnection();
+    let query =
+      "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) >= ? and DATE(clockIn) <= ?) or (DATE(clockOut) >= ? and DATE(clockOut) <= ?)";
+    let values = [startDate, endDate, startDate, endDate];
+    const [rows, fields] = await connection.query(query, values);
+    const getNonClockOut = rows.map((row)=>{
+      if (row["clockOut"] === null) {
+        return ({employeeNumber:row["employeeNumber"],clockIn:`${moment(row["clockIn"])
+        .utcOffset(8)
+        .format("YYYY-MM-DD HH:mm")}`,clockOut:null})
+      }
+    })
+    const return_array=getNonClockOut.filter((employee)=>employee!=null)
+    if(return_array){
+      reply.status(200).send(return_array)
+    }
+    else if(return_array.length===0){
+      reply.code(400).send({ message: "no employee unclockOut" });
+    }
+   
+  } catch (error) {
+    console.error("Error executing MySQL query:", error);
+    reply.status(500).send("Internal Server Error");
+  }
+
+  
+};
 module.exports = {
   getAllMembers,
   getMemberByNumber,
   postTodayClock,
   putReClock,
+  getTodayAllInfo,
+  getPeriodAllInfo,
+  getPeriodNonClockOutInfo,
 };

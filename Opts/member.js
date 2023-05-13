@@ -2,7 +2,10 @@ const {
   getAllMembers,
   getMemberByNumber,
   postTodayClock,
-  putReClock
+  putReClock,
+  getTodayAllInfo,
+  getPeriodAllInfo,
+  getPeriodNonClockOutInfo
 } = require("../controllers/members");
 
 const getMembersOpts = {
@@ -133,4 +136,112 @@ const putReClockOpts = {
   handler: putReClock,
 };
 
-module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts };
+const getTodayAllInfoOpts={
+  schema: {
+    response: {
+      200: {
+        type: "array",
+        members: {
+          type: "object",
+          properties: {
+            employeeNumber: { type: "int" },
+            clockIn: { type: "string" },
+            clockOut: { type: "string" },
+            breakTime:{type: "number"},
+            totalWorkTime:{type: "number"},
+          },
+        },
+        default: [
+          {
+            employeeNumber: 10001,
+            clockIn: "2023-05-08",
+            clockOut: "2023-05-08",
+            breakTime:1,
+            totalWorkTime:8.5,
+          },
+          {
+            employeeNumber: 10001,
+            clockIn: "2023-05-08",
+            clockOut: "2023-05-08",
+            breakTime:1,
+            totalWorkTime:8.5,
+          },
+        ],
+      },
+    },
+  },
+  handler: getTodayAllInfo,
+}
+
+
+const getPeriodAllInfoOpts={
+  schema: {
+
+    querystring: {
+      type: "object",
+      properties: {
+        startDate: {
+          type: "string",
+          description: "search from startDate",
+        },
+        endDate: {
+          type: "string",
+          description: "search to endDate",
+        },
+      },
+      required: ['startDate','endDate'],
+    },
+    response: {
+      201: {
+        description: "新增打卡記錄",
+        type: "object",
+        properties: {
+          // 定义响应体的属性和类型
+          message: { type: "string" },
+          // ...
+        },
+        default: {
+          message: "add 1110001 clockIn at 2023-05-12 09:00",
+        },
+      },
+    },
+  },
+  handler: getPeriodAllInfo,
+}
+
+const getPeriodNonClockOutInfoOpts={
+  schema: {
+
+    querystring: {
+      type: "object",
+      properties: {
+        startDate: {
+          type: "string",
+          description: "search from startDate",
+        },
+        endDate: {
+          type: "string",
+          description: "search to endDate",
+        },
+      },
+      required: ['startDate','endDate'],
+    },
+    response: {
+      201: {
+        description: "新增打卡記錄",
+        type: "object",
+        properties: {
+          // 定义响应体的属性和类型
+          message: { type: "string" },
+          // ...
+        },
+        default: {
+          message: "add 1110001 clockIn at 2023-05-12 09:00",
+        },
+      },
+    },
+  },
+  handler: getPeriodNonClockOutInfo,
+}
+
+module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodNonClockOutInfoOpts };
