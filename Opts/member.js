@@ -384,10 +384,10 @@ const getDateFirstFiveEmployeesInfoOpts={
         description: "資料庫錯誤",
         type: "object",
         properties: {
-          message: { type: "object" },
+          message: { type: "string" },
         },
         default: {
-          message: "Internal Server Error",
+          "message: Internal Server Error"
         },
       },
     },
