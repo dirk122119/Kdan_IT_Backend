@@ -4,7 +4,7 @@ const {
   getTodayAllInfoOpts,
   getPeriodAllInfoOpts,
   getPeriodUnClockOutInfoOpts,
-  getPeriodFirstFiveEmployeesInfoOpts
+  getDateFirstFiveEmployeesInfoOpts
 } = require("../Opts/member");
 
 function memberRoutes(fastify, options, done) {
@@ -14,7 +14,7 @@ function memberRoutes(fastify, options, done) {
   fastify.get("/members/todayAllInfo", getTodayAllInfoOpts);
   fastify.get("/members/periodAllInfo", getPeriodAllInfoOpts);
   fastify.get("/members/periodUnClockOutInfo", getPeriodUnClockOutInfoOpts);
-  fastify.get("/members/periodFirstFiveEmployees",getPeriodFirstFiveEmployeesInfoOpts)
+  fastify.get("/members/dateFirstFiveEmployees",getDateFirstFiveEmployeesInfoOpts)
   done();
 }
 module.exports = memberRoutes;

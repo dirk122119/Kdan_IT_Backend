@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "fastify": "^3.29.5",
+    "fastify-cors": "^6.1.0",
     "fastify-swagger": "^5.2.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",

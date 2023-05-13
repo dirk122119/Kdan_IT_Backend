@@ -13,15 +13,14 @@ const postTodayClock = async (req, reply) => {
     const today = momentTz();
     const timezone = "Asia/Taipei";
     const todayInTaiwan = today.tz(timezone);
-
     if (reqBody.checkCatagory === "clockIn") {
       let query =
-        "select employeeNumber, CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
-      let values = [reqBody.employeeNumber];
+        "select employeeNumber, clockIn, clockOut From members where DATE(clockIn) = ? and employeeNumber = ?";
+      let values = [todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       if (rows.length != 0 && rows[0].clockIn) {
         reply.status(409).send({
-          messgae: `${reqBody.employeeNumber} today clockIn data is exist`,
+          message: `${reqBody.employeeNumber} today clockIn data is exist`,
         });
       } else if (rows.length === 0) {
         query = "INSERT INTO members (employeeNumber, clockIn) VALUES (?,?);";
@@ -33,7 +32,7 @@ const postTodayClock = async (req, reply) => {
       }
     } else if (reqBody.checkCatagory === "clockOut") {
       let query =
-        "select employeeNumber,CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
+        "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
       let values = [reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       // 早上未打卡新增下班打卡資料
@@ -54,13 +53,16 @@ const postTodayClock = async (req, reply) => {
       //早上有打卡，新增下班打卡
       else if (rows.length != 0 && rows[0].clockOut === null) {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockOutStringToTime = moment(reqBody.time, stringformat);
-        if (clockOutStringToTime - rows[0].clockIn > 0) {
+        const clockOutStringToTime = moment(reqBody.time, stringformat).utcOffset(8);
+        const clockInStringToTime = moment(rows[0].clockIn).utcOffset(8);
+        console.log(clockOutStringToTime)
+        console.log(clockInStringToTime)
+        if (clockOutStringToTime - clockInStringToTime > 0) {
           query =
             "UPDATE members SET clockOut = ? where DATE(clockIn) = CURDATE() and employeeNumber = ?;";
           values = [reqBody.time, reqBody.employeeNumber];
           const [result] = await connection.query(query, values);
-          reply.status(200).send({
+          reply.status(201).send({
             message: `set ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
           });
         } else {
@@ -73,19 +75,19 @@ const postTodayClock = async (req, reply) => {
     connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 
 const putReClock = async (req, reply) => {
   const reqBody = req.body;
-  const dateTime = moment(reqBody.time, "YYYY-MM-DD HH:mm");
+  const dateTime = moment(reqBody.time, "YYYY-MM-DD HH:mm").utcOffset(8);
   const date = dateTime.format("YYYY-MM-DD");
 
   try {
     const connection = await pool.getConnection();
     let query =
-      "select employeeNumber,CONVERT_TZ(clockIn, '+00:00', '+08:00') as clockIn, CONVERT_TZ(clockOut, '+00:00', '+08:00') as clockOut From members where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?)";
+      "select employeeNumber, clockIn, clockOut From members where employeeNumber = ? and ( DATE(clockIn) = ? or DATE(clockOut) = ?)";
     let values = [reqBody.employeeNumber, date, date];
     const [rows, fields] = await connection.query(query, values);
     if (rows.length == 0) {
@@ -100,15 +102,15 @@ const putReClock = async (req, reply) => {
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] != null) {
       reply.status(409).send({
-        messgae: `employeeNumber:${reqBody.employeeNumber},date:${date} ${reqBody.checkCatagory} data is exist`,
+        message: `employeeNumber:${reqBody.employeeNumber},date:${date} ${reqBody.checkCatagory} data is exist`,
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] === null) {
       let flag = true;
       //判斷clockOut時間有沒有比clockIn時間晚
       if (reqBody.checkCatagory === "clockIn") {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockInTime = moment(reqBody.time, stringformat);
-        const clockOutTime = rows[0]["clockOut"];
+        const clockInTime = moment(reqBody.time, stringformat).utcOffset(8);
+        const clockOutTime = moment(rows[0]["clockOut"], stringformat).utcOffset(8);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
         if (diffTime < 0) {
           reply.code(400).send({
@@ -119,8 +121,8 @@ const putReClock = async (req, reply) => {
         // 判斷clockOut時間有沒有比clockIn時間晚
       } else if (reqBody.checkCatagory === "clockOut") {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockOutTime = moment(reqBody.time, stringformat);
-        const clockInTime = rows[0]["clockIn"];
+        const clockOutTime = moment(reqBody.time, stringformat).utcOffset(8);
+        const clockInTime = moment(rows[0]["clockIn"], stringformat).utcOffset(8);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
 
         if (diffTime < 0) {
@@ -145,7 +147,7 @@ const putReClock = async (req, reply) => {
     connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 
@@ -160,7 +162,9 @@ const getTodayAllInfo = async (req, reply) => {
       "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ? or DATE(clockOut) = ?";
     let values = [dateToday, dateToday];
     const [rows, fields] = await connection.query(query, values);
-    console.log(rows);
+    if(rows.length===0){
+      reply.status(404).send({message:"data not found"});
+    }
     const return_array = rows.map((row) => {
       if (row["clockIn"] != null && row["clockOut"] != null) {
         const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
@@ -212,11 +216,11 @@ const getTodayAllInfo = async (req, reply) => {
         };
       }
     });
-    connection.release();
     reply.status(200).send(return_array);
+    connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 
@@ -230,6 +234,7 @@ const getPeriodAllInfo = async (req, reply) => {
       "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) >= ? and DATE(clockIn) <= ?) or (DATE(clockOut) >= ? and DATE(clockOut) <= ?)";
     let values = [startDate, endDate, startDate, endDate];
     const [rows, fields] = await connection.query(query, values);
+
     const return_array = rows.map((row) => {
       if (row["clockIn"] != null && row["clockOut"] != null) {
         const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
@@ -283,11 +288,18 @@ const getPeriodAllInfo = async (req, reply) => {
         };
       }
     });
+    
+    if(return_array.length===0){
+      reply.status(404).send({message:"data not found"});
+    }
+    else{
+      reply.status(200).send(return_array);
+    }
     connection.release();
-    reply.status(200).send(return_array);
+    
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 
@@ -314,18 +326,18 @@ const getPeriodUnClockOutInfo = async (req, reply) => {
     const return_array = getUnClockOut.filter((employee) => employee != null);
 
     if (return_array.length === 0) {
-      reply.code(400).send({ message: "no employee unclockOut" });
+      reply.code(404).send({ message: "no employee unclockOut" });
     } else {
       reply.status(200).send(return_array);
     }
     connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 
-const getPeriodFirstFiveEmployeesInfo = async (req, reply) => {
+const getDateFirstFiveEmployeesInfo = async (req, reply) => {
   const date = req.query.date;
 
 
@@ -344,10 +356,16 @@ const getPeriodFirstFiveEmployeesInfo = async (req, reply) => {
         return aDateTime-bDateTime
     })
     let returnFirstFive=getDateArray.slice(0,5)
-    reply.status(200).send(returnFirstFive);
+    if(returnFirstFive.length==0){
+      reply.code(404).send({ message: "no employee unclockOut" });
+    }
+    else{
+      reply.status(200).send(returnFirstFive);
+    }
+    connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
-    reply.status(500).send("Internal Server Error");
+    reply.status(500).send({message:"Internal Server Error"});
   }
 };
 module.exports = {
@@ -357,5 +375,5 @@ module.exports = {
   getTodayAllInfo,
   getPeriodAllInfo,
   getPeriodUnClockOutInfo,
-  getPeriodFirstFiveEmployeesInfo,
+  getDateFirstFiveEmployeesInfo,
 };
