@@ -13,6 +13,13 @@ const postTodayClock = async (req, reply) => {
     const today = momentTz();
     const timezone = "Asia/Taipei";
     const todayInTaiwan = today.tz(timezone);
+    const timeDate = moment(reqBody.time, "YYYY-MM-DD HH:mm").utcOffset(8)
+    if(todayInTaiwan.format("YYYY-MM-DD")!=timeDate.format("YYYY-MM-DD")){
+      reply.status(400).send({
+        message: "date wrong",
+      });
+    }
+    else{
     if (reqBody.checkCatagory === "clockIn") {
       let query =
         "select employeeNumber, clockIn, clockOut From members where DATE(clockIn) = ? and employeeNumber = ?";
@@ -32,8 +39,8 @@ const postTodayClock = async (req, reply) => {
       }
     } else if (reqBody.checkCatagory === "clockOut") {
       let query =
-        "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = CURDATE() and employeeNumber = ?";
-      let values = [reqBody.employeeNumber];
+        "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ? and employeeNumber = ?";
+      let values = [todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       // 早上未打卡新增下班打卡資料
       if (rows.length === 0) {
@@ -73,6 +80,7 @@ const postTodayClock = async (req, reply) => {
       }
     }
     connection.release();
+  }
   } catch (error) {
     console.error("Error executing MySQL query:", error);
     reply.status(500).send({message:"Internal Server Error"});
