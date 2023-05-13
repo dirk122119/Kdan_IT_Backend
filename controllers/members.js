@@ -69,6 +69,7 @@ const postTodayClock = async (req, reply) => {
             "UPDATE members SET clockOut = ? where DATE(clockIn) = CURDATE() and employeeNumber = ?;";
           values = [reqBody.time, reqBody.employeeNumber];
           const [result] = await connection.query(query, values);
+          console.log(result)
           reply.status(201).send({
             message: `set ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
           });
