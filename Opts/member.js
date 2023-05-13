@@ -387,7 +387,7 @@ const getDateFirstFiveEmployeesInfoOpts={
           message: { type: "string" },
         },
         default: {
-          "message: Internal Server Error"
+          message: "Internal Server Error",
         },
       },
     },
