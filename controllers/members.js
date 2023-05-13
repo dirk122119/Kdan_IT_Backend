@@ -60,8 +60,8 @@ const postTodayClock = async (req, reply) => {
       //早上有打卡，新增下班打卡
       else if (rows.length != 0 && rows[0].clockOut === null) {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockOutStringToTime = moment(reqBody.time, stringformat).utcOffset(8);
-        const clockInStringToTime = moment(rows[0].clockIn).utcOffset(8);
+        const clockOutStringToTime = moment(reqBody.time, stringformat);
+        const clockInStringToTime = moment(rows[0].clockIn);
         console.log(clockOutStringToTime)
         console.log(clockInStringToTime)
         if (clockOutStringToTime - clockInStringToTime > 0) {
