@@ -1,7 +1,7 @@
 const fastify = require("fastify")({logger:true})
 const fastifyCors = require('fastify-cors');
 
-const PORT =5001
+const PORT =5000
 const HOST = "localhost"
 
 fastify.register(require("fastify-swagger"),{
@@ -20,7 +20,7 @@ fastify.register(require('./routers/members'))
 
 const start = async()=>{
     try {
-        await fastify.listen(PORT,HOST)
+        await fastify.listen({port: 3000, host: '0.0.0.0'})
     } catch(error){
         fastify.log.error(error)
         process.exit(1)
