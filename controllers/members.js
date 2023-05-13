@@ -13,7 +13,7 @@ const postTodayClock = async (req, reply) => {
     const today = momentTz();
     const timezone = "Asia/Taipei";
     const todayInTaiwan = today.tz(timezone);
-    const timeDate = moment(reqBody.time, "YYYY-MM-DD HH:mm").utcOffset(8)
+    const timeDate = moment(reqBody.time, "YYYY-MM-DD HH:mm")
     if(todayInTaiwan.format("YYYY-MM-DD")!=timeDate.format("YYYY-MM-DD")){
       reply.status(400).send({
         message: "date wrong",
@@ -89,7 +89,7 @@ const postTodayClock = async (req, reply) => {
 
 const putReClock = async (req, reply) => {
   const reqBody = req.body;
-  const dateTime = moment(reqBody.time, "YYYY-MM-DD HH:mm").utcOffset(8);
+  const dateTime = moment(reqBody.time, "YYYY-MM-DD HH:mm");
   const date = dateTime.format("YYYY-MM-DD");
 
   try {
@@ -117,8 +117,8 @@ const putReClock = async (req, reply) => {
       //判斷clockOut時間有沒有比clockIn時間晚
       if (reqBody.checkCatagory === "clockIn") {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockInTime = moment(reqBody.time, stringformat).utcOffset(8);
-        const clockOutTime = moment(rows[0]["clockOut"], stringformat).utcOffset(8);
+        const clockInTime = moment(reqBody.time, stringformat);
+        const clockOutTime = moment(rows[0]["clockOut"], stringformat);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
         if (diffTime < 0) {
           reply.code(400).send({
@@ -129,8 +129,8 @@ const putReClock = async (req, reply) => {
         // 判斷clockOut時間有沒有比clockIn時間晚
       } else if (reqBody.checkCatagory === "clockOut") {
         const stringformat = "YYYY-MM-DD HH:mm";
-        const clockOutTime = moment(reqBody.time, stringformat).utcOffset(8);
-        const clockInTime = moment(rows[0]["clockIn"], stringformat).utcOffset(8);
+        const clockOutTime = moment(reqBody.time, stringformat);
+        const clockInTime = moment(rows[0]["clockIn"], stringformat);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
 
         if (diffTime < 0) {
@@ -175,10 +175,10 @@ const getTodayAllInfo = async (req, reply) => {
     }
     const return_array = rows.map((row) => {
       if (row["clockIn"] != null && row["clockOut"] != null) {
-        const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
-        const clockOutTime = moment(row["clockOut"], "HH:mm").utcOffset(8);
-        const breakStartTime = moment("12:00", "HH:mm").utcOffset(8);
-        const breakEndTime = moment("13:30", "HH:mm").utcOffset(8);
+        const clockInTime = moment(row["clockIn"], "HH:mm");
+        const clockOutTime = moment(row["clockOut"], "HH:mm");
+        const breakStartTime = moment("12:00", "HH:mm");
+        const breakEndTime = moment("13:30", "HH:mm");
         const breakTime = getBreakTime(
           clockInTime,
           clockOutTime,
@@ -193,12 +193,8 @@ const getTodayAllInfo = async (req, reply) => {
         );
         return {
           employeeNumber: `${row["employeeNumber"]}`,
-          clockIn: `${moment(row["clockIn"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
-          clockOut: `${moment(row["clockOut"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: Number(breakTime.toFixed(2)),
           totalWorkTime: Number(totalWorkTime.toFixed(2)),
         };
@@ -206,18 +202,14 @@ const getTodayAllInfo = async (req, reply) => {
         return {
           employeeNumber: `${row["employeeNumber"]}`,
           clockIn: null,
-          clockOut: `${moment(row["clockOut"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: null,
           totalWorkTime: null,
         };
       } else if (row["clockOut"] === null) {
         return {
           employeeNumber: `${row["employeeNumber"]}`,
-          clockIn: `${moment(row["clockIn"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
           clockOut: null,
           breakTime: null,
           totalWorkTime: null,
@@ -245,10 +237,10 @@ const getPeriodAllInfo = async (req, reply) => {
 
     const return_array = rows.map((row) => {
       if (row["clockIn"] != null && row["clockOut"] != null) {
-        const clockInTime = moment(row["clockIn"], "HH:mm").utcOffset(8);
-        const clockOutTime = moment(row["clockOut"], "HH:mm").utcOffset(8);
-        const breakStartTime = moment("12:00", "HH:mm").utcOffset(8);
-        const breakEndTime = moment("13:30", "HH:mm").utcOffset(8);
+        const clockInTime = moment(row["clockIn"], "HH:mm");
+        const clockOutTime = moment(row["clockOut"], "HH:mm");
+        const breakStartTime = moment("12:00", "HH:mm");
+        const breakEndTime = moment("13:30", "HH:mm");
         const breakTime = getBreakTime(
           clockInTime,
           clockOutTime,
@@ -265,12 +257,8 @@ const getPeriodAllInfo = async (req, reply) => {
 
         return {
           employeeNumber: `${row["employeeNumber"]}`,
-          clockIn: `${moment(row["clockIn"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
-          clockOut: `${moment(row["clockOut"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: Number(breakTime.toFixed(2)),
           totalWorkTime: Number(totalWorkTime.toFixed(2)),
         };
@@ -278,18 +266,14 @@ const getPeriodAllInfo = async (req, reply) => {
         return {
           employeeNumber: `${row["employeeNumber"]}`,
           clockIn: null,
-          clockOut: `${moment(row["clockOut"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: null,
           totalWorkTime: null,
         };
       } else if (row["clockOut"] === null) {
         return {
           employeeNumber: `${row["employeeNumber"]}`,
-          clockIn: `${moment(row["clockIn"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
           clockOut: null,
           breakTime: null,
           totalWorkTime: null,
@@ -324,9 +308,7 @@ const getPeriodUnClockOutInfo = async (req, reply) => {
       if (row["clockOut"] === null) {
         return {
           employeeNumber: row["employeeNumber"],
-          clockIn: `${moment(row["clockIn"])
-            .utcOffset(8)
-            .format("YYYY-MM-DD HH:mm")}`,
+          clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
           clockOut: null,
         };
       }
@@ -356,11 +338,11 @@ const getDateFirstFiveEmployeesInfo = async (req, reply) => {
     let values = [date];
     const [rows, fields] = await connection.query(query, values);
     const getDateArray=rows.map((row)=>{
-      return ({employeeNumber:row["employeeNumber"],clockIn:moment(row["clockIn"]).utcOffset(8).format("YYYY-MM-DD HH:mm")})
+      return ({employeeNumber:row["employeeNumber"],clockIn:moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")})
     })
     getDateArray.sort((a,b)=>{
-      const aDateTime=moment(a["clockIn"]).utcOffset(8)
-        const bDateTime=moment(b["clockIn"]).utcOffset(8)
+      const aDateTime=moment(a["clockIn"])
+        const bDateTime=moment(b["clockIn"])
         return aDateTime-bDateTime
     })
     let returnFirstFive=getDateArray.slice(0,5)
