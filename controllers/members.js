@@ -62,14 +62,11 @@ const postTodayClock = async (req, reply) => {
         const stringformat = "YYYY-MM-DD HH:mm";
         const clockOutStringToTime = moment(reqBody.time, stringformat);
         const clockInStringToTime = moment(rows[0].clockIn);
-        console.log(clockOutStringToTime)
-        console.log(clockInStringToTime)
         if (clockOutStringToTime - clockInStringToTime > 0) {
           query =
             "UPDATE members SET clockOut = ? where DATE(clockIn) = ? and employeeNumber = ?;";
           values = [reqBody.time,todayInTaiwan.format("YYYY-MM-DD"), reqBody.employeeNumber];
           const [result] = await connection.query(query, values);
-          console.log(result)
           reply.status(201).send({
             message: `set ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
           });
