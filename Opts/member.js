@@ -1,6 +1,4 @@
 const {
-  getAllMembers,
-  getMemberByNumber,
   postTodayClock,
   putReClock,
   getTodayAllInfo,
@@ -9,69 +7,7 @@ const {
   getPeriodFirstFiveEmployeesInfo
 } = require("../controllers/members");
 
-const getMembersOpts = {
-  schema: {
-    response: {
-      200: {
-        type: "array",
-        members: {
-          type: "object",
-          properties: {
-            employeeNumber: { type: "int" },
-            clockIn: { type: "string" },
-            clockOut: { type: "string" },
-          },
-        },
-        default: [
-          {
-            employeeNumber: 10001,
-            clockIn: "2023-05-08",
-            clockOut: "2023-05-08",
-          },
-          {
-            employeeNumber: 10001,
-            clockIn: "2023-05-08",
-            clockOut: "2023-05-08",
-          },
-        ],
-      },
-    },
-  },
-  handler: getAllMembers,
-};
 
-const getMemberOpts = {
-  schema: {
-    params: {
-      type: "object",
-      properties: {
-        employeeNumber: {
-          type: "number",
-          description: "a User id",
-        },
-      },
-    },
-    response: {
-      200: {
-        description: "Returns a find data",
-        type: "object",
-        properties: {
-          employeeNumber: { type: "number" },
-          clockIn: { type: "string" },
-          clockOut: { type: "string" },
-        },
-      },
-      400: {
-        description: "User not found",
-        type: "object",
-        properties: {
-          message: { type: "string" },
-        },
-      },
-    },
-  },
-  handler: getMemberByNumber,
-};
 
 const postTodayClockOpts = {
   schema: {
@@ -276,4 +212,4 @@ const getPeriodFirstFiveEmployeesInfoOpts={
   handler: getPeriodFirstFiveEmployeesInfo,
 }
 
-module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodUnClockOutInfoOpts,getPeriodFirstFiveEmployeesInfoOpts };
+module.exports = { postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodUnClockOutInfoOpts,getPeriodFirstFiveEmployeesInfoOpts };

@@ -1,21 +1,9 @@
-const members = require("../member_data");
+
 const momentTz = require("moment-timezone");
 const moment = require("moment");
 const { pool } = require("../lib/SQLfunction");
 const { getBreakTime, getTotalWorkTime } = require("../lib/getDiffTime");
-const getAllMembers = (req, reply) => {
-  reply.send(members);
-};
-const getMemberByNumber = (req, reply) => {
-  const { employeeNumber } = req.params;
-  const member = members.find(
-    (item) => item.employeeNumber === Number(employeeNumber)
-  );
-  if (member == undefined) {
-    reply.code(400).send({ message: "not found" });
-  }
-  reply.send(member);
-};
+
 
 const postTodayClock = async (req, reply) => {
   const reqBody = req.body;
@@ -363,8 +351,7 @@ const getPeriodFirstFiveEmployeesInfo = async (req, reply) => {
   }
 };
 module.exports = {
-  getAllMembers,
-  getMemberByNumber,
+
   postTodayClock,
   putReClock,
   getTodayAllInfo,
