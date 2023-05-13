@@ -5,7 +5,8 @@ const {
   putReClock,
   getTodayAllInfo,
   getPeriodAllInfo,
-  getPeriodNonClockOutInfo
+  getPeriodUnClockOutInfo,
+  getPeriodFirstFiveEmployeesInfo
 } = require("../controllers/members");
 
 const getMembersOpts = {
@@ -209,7 +210,7 @@ const getPeriodAllInfoOpts={
   handler: getPeriodAllInfo,
 }
 
-const getPeriodNonClockOutInfoOpts={
+const getPeriodUnClockOutInfoOpts={
   schema: {
 
     querystring: {
@@ -241,7 +242,38 @@ const getPeriodNonClockOutInfoOpts={
       },
     },
   },
-  handler: getPeriodNonClockOutInfo,
+  handler: getPeriodUnClockOutInfo,
 }
 
-module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodNonClockOutInfoOpts };
+const getPeriodFirstFiveEmployeesInfoOpts={
+  schema: {
+
+    querystring: {
+      type: "object",
+      properties: {
+        date: {
+          type: "string",
+          description: "search date",
+        }
+      },
+      required: ['date'],
+    },
+    response: {
+      201: {
+        description: "新增打卡記錄",
+        type: "object",
+        properties: {
+          // 定义响应体的属性和类型
+          message: { type: "string" },
+          // ...
+        },
+        default: {
+          message: "add 1110001 clockIn at 2023-05-12 09:00",
+        },
+      },
+    },
+  },
+  handler: getPeriodFirstFiveEmployeesInfo,
+}
+
+module.exports = { getMembersOpts, getMemberOpts, postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodUnClockOutInfoOpts,getPeriodFirstFiveEmployeesInfoOpts };

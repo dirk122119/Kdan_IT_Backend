@@ -303,7 +303,7 @@ const getPeriodAllInfo = async (req, reply) => {
   }
 };
 
-const getPeriodNonClockOutInfo = async (req, reply) => {
+const getPeriodUnClockOutInfo = async (req, reply) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
   try {
@@ -312,27 +312,55 @@ const getPeriodNonClockOutInfo = async (req, reply) => {
       "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) >= ? and DATE(clockIn) <= ?) or (DATE(clockOut) >= ? and DATE(clockOut) <= ?)";
     let values = [startDate, endDate, startDate, endDate];
     const [rows, fields] = await connection.query(query, values);
-    const getNonClockOut = rows.map((row)=>{
+    const getUnClockOut = rows.map((row) => {
       if (row["clockOut"] === null) {
-        return ({employeeNumber:row["employeeNumber"],clockIn:`${moment(row["clockIn"])
-        .utcOffset(8)
-        .format("YYYY-MM-DD HH:mm")}`,clockOut:null})
+        return {
+          employeeNumber: row["employeeNumber"],
+          clockIn: `${moment(row["clockIn"])
+            .utcOffset(8)
+            .format("YYYY-MM-DD HH:mm")}`,
+          clockOut: null,
+        };
       }
-    })
-    const return_array=getNonClockOut.filter((employee)=>employee!=null)
-    if(return_array){
-      reply.status(200).send(return_array)
-    }
-    else if(return_array.length===0){
+    });
+    const return_array = getUnClockOut.filter((employee) => employee != null);
+
+    if (return_array.length === 0) {
       reply.code(400).send({ message: "no employee unclockOut" });
+    } else {
+      reply.status(200).send(return_array);
     }
-   
+    connection.release();
   } catch (error) {
     console.error("Error executing MySQL query:", error);
     reply.status(500).send("Internal Server Error");
   }
+};
 
-  
+const getPeriodFirstFiveEmployeesInfo = async (req, reply) => {
+  const date = req.query.date;
+
+
+  try {
+    const connection = await pool.getConnection();
+    let query =
+      "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ? ";
+    let values = [date];
+    const [rows, fields] = await connection.query(query, values);
+    const getDateArray=rows.map((row)=>{
+      return ({employeeNumber:row["employeeNumber"],clockIn:moment(row["clockIn"]).utcOffset(8).format("YYYY-MM-DD HH:mm")})
+    })
+    getDateArray.sort((a,b)=>{
+      const aDateTime=moment(a["clockIn"]).utcOffset(8)
+        const bDateTime=moment(b["clockIn"]).utcOffset(8)
+        return aDateTime-bDateTime
+    })
+    let returnFirstFive=getDateArray.slice(0,5)
+    reply.status(200).send(returnFirstFive);
+  } catch (error) {
+    console.error("Error executing MySQL query:", error);
+    reply.status(500).send("Internal Server Error");
+  }
 };
 module.exports = {
   getAllMembers,
@@ -341,5 +369,6 @@ module.exports = {
   putReClock,
   getTodayAllInfo,
   getPeriodAllInfo,
-  getPeriodNonClockOutInfo,
+  getPeriodUnClockOutInfo,
+  getPeriodFirstFiveEmployeesInfo,
 };
