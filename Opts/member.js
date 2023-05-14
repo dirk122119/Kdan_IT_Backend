@@ -203,7 +203,7 @@ const getDateAllInfoOpts={
       properties: {
         date: {
           type: "string",
-          description: "search from startDate 'YYYY-MM-DD' ex 2022-01-01",
+          description: "search from startDate 'YYYY-MM-DD' ex 2022-01-03",
         },
       },
       required: ['date'],
