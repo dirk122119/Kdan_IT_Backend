@@ -44,7 +44,7 @@ const postTodayClock = async (req, reply) => {
         values = [reqBody.employeeNumber, reqBody.time];
         const [result] = await connection.query(query, values);
         reply.status(201).send({
-          message: `${reqBody.employeeNumber} clockIn at ${reqBody.time} `,
+          message: `add ${reqBody.employeeNumber} clockIn at ${reqBody.time} `,
         });
       }
     } else if (reqBody.checkCatagory === "clockOut") {
