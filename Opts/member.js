@@ -2,7 +2,7 @@ const {
   postTodayClock,
   putReClock,
   getTodayAllInfo,
-  getPeriodAllInfo,
+  getDateAllInfo,
   getPeriodUnClockOutInfo,
   getDateFirstFiveEmployeesInfo
 } = require("../controllers/members");
@@ -195,22 +195,18 @@ const getTodayAllInfoOpts={
 }
 
 
-const getPeriodAllInfoOpts={
+const getDateAllInfoOpts={
   schema: {
 
     querystring: {
       type: "object",
       properties: {
-        startDate: {
+        date: {
           type: "string",
           description: "search from startDate 'YYYY-MM-DD' ex 2022-01-01",
         },
-        endDate: {
-          type: "string",
-          description: "search to endDate 'YYYY-MM-DD' ex 2023-01-01",
-        },
       },
-      required: ['startDate','endDate'],
+      required: ['date'],
     },
     response: {
       200: {
@@ -265,7 +261,7 @@ const getPeriodAllInfoOpts={
       },
     },
   },
-  handler: getPeriodAllInfo,
+  handler: getDateAllInfo,
 }
 
 const getPeriodUnClockOutInfoOpts={
@@ -395,4 +391,4 @@ const getDateFirstFiveEmployeesInfoOpts={
   handler: getDateFirstFiveEmployeesInfo,
 }
 
-module.exports = { postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getPeriodAllInfoOpts,getPeriodUnClockOutInfoOpts,getDateFirstFiveEmployeesInfoOpts };
+module.exports = { postTodayClockOpts,putReClockOpts,getTodayAllInfoOpts,getDateAllInfoOpts,getPeriodUnClockOutInfoOpts,getDateFirstFiveEmployeesInfoOpts };

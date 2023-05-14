@@ -232,15 +232,15 @@ const getTodayAllInfo = async (req, reply) => {
   }
 };
 
-const getPeriodAllInfo = async (req, reply) => {
-  const startDate = req.query.startDate;
-  const endDate = req.query.endDate;
+const getDateAllInfo = async (req, reply) => {
+  const date = req.query.date;
+  
 
   try {
     const connection = await pool.getConnection();
     let query =
-      "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) >= ? and DATE(clockIn) <= ?) or (DATE(clockOut) >= ? and DATE(clockOut) <= ?)";
-    let values = [startDate, endDate, startDate, endDate];
+      "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ?  or DATE(clockOut) = ? ";
+    let values = [date, date];
     const [rows, fields] = await connection.query(query, values);
 
     const return_array = rows.map((row) => {
@@ -371,7 +371,7 @@ module.exports = {
   postTodayClock,
   putReClock,
   getTodayAllInfo,
-  getPeriodAllInfo,
+  getDateAllInfo,
   getPeriodUnClockOutInfo,
   getDateFirstFiveEmployeesInfo,
 };
