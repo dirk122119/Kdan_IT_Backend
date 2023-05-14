@@ -1,7 +1,7 @@
 const fastify = require("fastify")({logger:true})
 const fastifyCors = require('fastify-cors');
 
-const PORT =5000
+const PORT =8000
 const HOST = "0.0.0.0"
 
 fastify.register(require("fastify-swagger"),{
