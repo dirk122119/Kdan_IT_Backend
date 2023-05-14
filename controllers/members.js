@@ -50,8 +50,8 @@ const postTodayClock = async (req, reply) => {
       }
     } else if (reqBody.checkCatagory === "clockOut") {
       let query =
-        "select employeeNumber,clockIn, clockOut From members where DATE(clockIn) = ? and employeeNumber = ?";
-      let values = [todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
+        "select employeeNumber,clockIn, clockOut From members where (DATE(clockIn) = ? and DATE(clockOut) = ?) and employeeNumber = ?";
+      let values = [todayInTaiwan.format("YYYY-MM-DD"),todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
       // 早上未打卡新增下班打卡資料
       if (rows.length === 0) {
