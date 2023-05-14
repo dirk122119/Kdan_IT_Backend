@@ -36,7 +36,7 @@ const postTodayClock = async (req, reply) => {
       else if(rows.length != 0 && rows[0].clockOut){
         console.log("===============")
         reply.status(400).send({
-          message: "please use reClock method to reClock",
+          message: "clockOut data is exist please use reClock method to reClock",
         });
       }
       //考慮當天都沒有紀錄，新增打卡紀錄
