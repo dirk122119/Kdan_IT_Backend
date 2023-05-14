@@ -16,7 +16,7 @@ const postTodayClock = async (req, reply) => {
     const timeDate = moment(reqBody.time, "YYYY-MM-DD HH:mm")
     if(todayInTaiwan.format("YYYY-MM-DD")!=timeDate.format("YYYY-MM-DD")){
       reply.status(400).send({
-        message: "date wrong",
+        message: "date is not today",
       });
     }
     else{
