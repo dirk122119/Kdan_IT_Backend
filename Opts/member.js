@@ -203,11 +203,11 @@ const getPeriodAllInfoOpts={
       properties: {
         startDate: {
           type: "string",
-          description: "search from startDate",
+          description: "search from startDate 'YYYY-MM-DD' ex 2022-01-01",
         },
         endDate: {
           type: "string",
-          description: "search to endDate",
+          description: "search to endDate 'YYYY-MM-DD' ex 2023-01-01",
         },
       },
       required: ['startDate','endDate'],
@@ -276,11 +276,11 @@ const getPeriodUnClockOutInfoOpts={
       properties: {
         startDate: {
           type: "string",
-          description: "search from startDate",
+          description: "search from startDate 'YYYY-MM-DD' ex 2022-01-01 ",
         },
         endDate: {
           type: "string",
-          description: "search to endDate",
+          description: "search to endDate 'YYYY-MM-DD' ex 2023-01-01",
         },
       },
       required: ['startDate','endDate'],
@@ -343,7 +343,7 @@ const getDateFirstFiveEmployeesInfoOpts={
       properties: {
         date: {
           type: "string",
-          description: "search date",
+          description: "search date 'YYYY-MM-DD' ex 2022-01-03 ",
         }
       },
       required: ['date'],

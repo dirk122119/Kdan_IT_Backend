@@ -32,9 +32,8 @@ const postTodayClock = async (req, reply) => {
           message: `${reqBody.employeeNumber} today clockIn data is exist`,
         });
       }
-      //考慮當天已經有打卡下班紀錄又想打卡上班紀錄
+      //考慮當天已經有打卡下班紀錄又想新增打卡上班紀錄
       else if(rows.length != 0 && rows[0].clockOut){
-        console.log("===============")
         reply.status(400).send({
           message: "clockOut data is exist please use reClock method to reClock",
         });
@@ -62,7 +61,7 @@ const postTodayClock = async (req, reply) => {
           message: `add ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
         });
       }
-      // 早上有打卡，下班重複打卡
+      // 下班重複打卡
       else if (rows.length != 0 && rows[0].clockOut) {
         reply.status(409).send({
           message: `${reqBody.employeeNumber} today clockOut data is exist`,
@@ -129,7 +128,7 @@ const putReClock = async (req, reply) => {
         const clockInTime = moment(reqBody.time, stringformat);
         const clockOutTime = moment(rows[0]["clockOut"], stringformat);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
-        if (diffTime < 0) {
+        if (diffTime <= 0) {
           reply.code(400).send({
             message: "wrong clockOut time, clockIn must be early than clockOut",
           });
@@ -142,7 +141,7 @@ const putReClock = async (req, reply) => {
         const clockInTime = moment(rows[0]["clockIn"], stringformat);
         const diffTime = clockOutTime.diff(clockInTime, "minutes");
 
-        if (diffTime < 0) {
+        if (diffTime <= 0) {
           reply.code(400).send({
             message: "wrong clockOut time, clockIn must be early than clockOut",
           });
