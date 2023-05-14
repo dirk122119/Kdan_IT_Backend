@@ -22,14 +22,25 @@ const postTodayClock = async (req, reply) => {
     else{
     if (reqBody.checkCatagory === "clockIn") {
       let query =
-        "select employeeNumber, clockIn, clockOut From members where DATE(clockIn) = ? and employeeNumber = ?";
-      let values = [todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
+        "select employeeNumber, clockIn, clockOut From members where (DATE(clockIn) = ? or  DATE(clockOut) = ?) and employeeNumber = ?";
+      let values = [todayInTaiwan.format("YYYY-MM-DD"),todayInTaiwan.format("YYYY-MM-DD"),reqBody.employeeNumber];
       const [rows, fields] = await connection.query(query, values);
+      console.log(rows)
+      //考慮當天已經有打卡上班紀錄
       if (rows.length != 0 && rows[0].clockIn) {
         reply.status(409).send({
           message: `${reqBody.employeeNumber} today clockIn data is exist`,
         });
-      } else if (rows.length === 0) {
+      }
+      //考慮當天已經有打卡下班紀錄又想打卡上班紀錄
+      else if(rows.length != 0 && rows[0].clockOut){
+        console.log("===============")
+        reply.status(400).send({
+          message: "please use reClock method to reClock",
+        });
+      }
+      //考慮當天都沒有紀錄，新增打卡紀錄
+       else if (rows.length === 0) {
         query = "INSERT INTO members (employeeNumber, clockIn) VALUES (?,?);";
         values = [reqBody.employeeNumber, reqBody.time];
         const [result] = await connection.query(query, values);
