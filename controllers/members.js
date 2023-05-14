@@ -77,7 +77,7 @@ const postTodayClock = async (req, reply) => {
             "UPDATE members SET clockOut = ? where DATE(clockIn) = ? and employeeNumber = ?;";
           values = [reqBody.time,todayInTaiwan.format("YYYY-MM-DD"), reqBody.employeeNumber];
           const [result] = await connection.query(query, values);
-          reply.status(201).send({
+          reply.status(200).send({
             message: `set ${reqBody.employeeNumber} clockOut at ${reqBody.time} `,
           });
         } else {
@@ -156,7 +156,7 @@ const putReClock = async (req, reply) => {
         values = [reqBody.time, reqBody.employeeNumber, date, date];
         const [result] = await connection.query(query, values);
         reply.status(200).send({
-          message: `employeeNumber:${reqBody.employeeNumber},  re${reqBody.checkCatagory} at ${reqBody.time} `,
+          message: `set employeeNumber:${reqBody.employeeNumber}, ${reqBody.checkCatagory} data at ${reqBody.time} `,
         });
       }
     }

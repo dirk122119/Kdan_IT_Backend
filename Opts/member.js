@@ -22,6 +22,16 @@ const postTodayClockOpts = {
       required: ['employeeNumber', 'checkCatagory', 'time'],
     },
     response: {
+      200: {
+        description: "在資料庫補上下班打卡記錄",
+        type: "object",
+        properties: {
+          message: { type: "string" },
+        },
+        default: {
+          message: "set 1110001 clockOut at 2023-05-12 19:00",
+        },
+      },
       201: {
         description: "在資料庫成功新增打卡記錄",
         type: "object",
