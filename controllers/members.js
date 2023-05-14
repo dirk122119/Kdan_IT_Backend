@@ -156,7 +156,7 @@ const putReClock = async (req, reply) => {
         values = [reqBody.time, reqBody.employeeNumber, date, date];
         const [result] = await connection.query(query, values);
         reply.status(200).send({
-          message: `set ${reqBody.employeeNumber}, ${reqBody.checkCatagory} at ${reqBody.time} `,
+          message: `set ${reqBody.employeeNumber} ${reqBody.checkCatagory} at ${reqBody.time} `,
         });
       }
     }
