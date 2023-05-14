@@ -33,7 +33,7 @@ const postTodayClockOpts = {
         },
       },
       400: {
-        description: "打卡上班晚於打卡下班時間",
+        description: "打卡上班晚於打卡下班時間或是日期不是當天",
         type: "object",
         properties: {
           message: { type: "string" },

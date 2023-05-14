@@ -54,7 +54,7 @@ const postTodayClock = async (req, reply) => {
       // 早上有打卡，下班重複打卡
       else if (rows.length != 0 && rows[0].clockOut) {
         reply.status(409).send({
-          messgae: `${reqBody.employeeNumber} today clockOut data is exist`,
+          message: `${reqBody.employeeNumber} today clockOut data is exist`,
         });
       }
       //早上有打卡，新增下班打卡
