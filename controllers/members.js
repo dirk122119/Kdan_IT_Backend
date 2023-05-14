@@ -200,7 +200,7 @@ const getTodayAllInfo = async (req, reply) => {
           breakEndTime
         );
         return {
-          employeeNumber: `${row["employeeNumber"]}`,
+          employeeNumber: row["employeeNumber"],
           clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
           clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: Number(breakTime.toFixed(2)),
@@ -208,7 +208,7 @@ const getTodayAllInfo = async (req, reply) => {
         };
       } else if (row["clockIn"] === null) {
         return {
-          employeeNumber: `${row["employeeNumber"]}`,
+          employeeNumber: row["employeeNumber"],
           clockIn: null,
           clockOut: `${moment(row["clockOut"]).format("YYYY-MM-DD HH:mm")}`,
           breakTime: null,
@@ -216,7 +216,7 @@ const getTodayAllInfo = async (req, reply) => {
         };
       } else if (row["clockOut"] === null) {
         return {
-          employeeNumber: `${row["employeeNumber"]}`,
+          employeeNumber: row["employeeNumber"],
           clockIn: `${moment(row["clockIn"]).format("YYYY-MM-DD HH:mm")}`,
           clockOut: null,
           breakTime: null,

@@ -145,7 +145,7 @@ const getTodayAllInfoOpts={
         members: {
           type: "object",
           properties: {
-            employeeNumber: { type: "int" },
+            employeeNumber: { type: "number" },
             clockIn: { type: "string" },
             clockOut: { type: "string" },
             breakTime:{type: "number"},
@@ -215,7 +215,7 @@ const getDateAllInfoOpts={
         members: {
           type: "object",
           properties: {
-            employeeNumber: { type: "int" },
+            employeeNumber: { type: "number" },
             clockIn: { type: "string" },
             clockOut: { type: "string" },
             breakTime:{type: "number"},
@@ -288,7 +288,7 @@ const getPeriodUnClockOutInfoOpts={
         members: {
           type: "object",
           properties: {
-            employeeNumber: { type: "int" },
+            employeeNumber: { type: "number" },
             clockIn: { type: "string" },
             clockOut: { type: "string" },
           },
@@ -351,7 +351,7 @@ const getDateFirstFiveEmployeesInfoOpts={
         members: {
           type: "object",
           properties: {
-            employeeNumber: { type: "int" },
+            employeeNumber: { type: "number" },
             clockIn: { type: "string" },
           },
         },
