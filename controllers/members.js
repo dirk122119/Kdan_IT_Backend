@@ -114,7 +114,7 @@ const putReClock = async (req, reply) => {
       values = [reqBody.employeeNumber, reqBody.time];
       const [result] = await connection.query(query, values);
       reply.status(201).send({
-        message: `add ${reqBody.employeeNumber} ${reqBody.checkCatagory} data at ${reqBody.time} `,
+        message: `add ${reqBody.employeeNumber} ${reqBody.checkCatagory} at ${reqBody.time} `,
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] != null) {
       reply.status(409).send({
@@ -156,7 +156,7 @@ const putReClock = async (req, reply) => {
         values = [reqBody.time, reqBody.employeeNumber, date, date];
         const [result] = await connection.query(query, values);
         reply.status(200).send({
-          message: `set ${reqBody.employeeNumber}, ${reqBody.checkCatagory} data at ${reqBody.time} `,
+          message: `set ${reqBody.employeeNumber}, ${reqBody.checkCatagory} at ${reqBody.time} `,
         });
       }
     }
