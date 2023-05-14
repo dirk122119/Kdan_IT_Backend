@@ -59,7 +59,7 @@ const postTodayClockOpts = {
           message: { type: "string" },
         },
         default: {
-          message: "1110001 today clockIn data is exist",
+          message: "1110001 date 2023-05-12 clockIn data is exist",
         },
       },
       500: {

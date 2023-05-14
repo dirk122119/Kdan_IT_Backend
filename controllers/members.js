@@ -118,7 +118,7 @@ const putReClock = async (req, reply) => {
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] != null) {
       reply.status(409).send({
-        message: `employeeNumber:${reqBody.employeeNumber},date:${date} ${reqBody.checkCatagory} data is exist`,
+        message: `${reqBody.employeeNumber},date:${date} ${reqBody.checkCatagory} data is exist`,
       });
     } else if (rows[0][`${reqBody.checkCatagory}`] === null) {
       let flag = true;
