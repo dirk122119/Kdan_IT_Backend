@@ -10,9 +10,9 @@
     ###### DB_USER=<資料庫的username>
     ###### DB_PASSWORD=<資料庫的password>
     ###### DB_DATABASE=<使用的資料庫>
-3. build docker image
-    ###### docker build -t kdan_api .
+3. build docker image``
+    ###### ``docker build -t kdan_api .``
 4. run docker container
-    ######  docker run -d -p 8000:8000 kdan_api
+    ######  ``docker run -d -p 8000:8000 kdan_api``
 5. open 127.0.0.1:8000/docs
     ##### 127.0.0.1:8000/docs 能使用Swagger UI 觀看與操作API文件
